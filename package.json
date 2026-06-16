@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
-    "fastify": "^4.25.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "fastify": "^4.25.2"
   },
   "devDependencies": {
     "prisma": "^5.7.1"

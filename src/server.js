@@ -12,6 +12,22 @@ const fastify = Fastify({
 
 export const prisma = new PrismaClient();
 
+// Add CORS headers manually
+fastify.addHook('onSend', async (request, reply) => {
+  reply.header('Access-Control-Allow-Origin', '*');
+  reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+});
+
+// Handle preflight requests
+fastify.options('/*', async (request, reply) => {
+  reply
+    .header('Access-Control-Allow-Origin', '*')
+    .header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+    .header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    .send();
+});
+
 // Register routes
 fastify.register(healthRoutes);
 fastify.register(taskRoutes);
