@@ -1,7 +1,7 @@
 export default async function busRoutes(fastify) {
   fastify.get('/bus/arrivals/:busStopCode', async (request, reply) => {
     const { busStopCode } = request.params;
-    const LTA_API_BASE = 'https://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2';
+    const LTA_API_BASE = 'https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival';
     const LTA_ACCOUNT_KEY = process.env.LTA_ACCOUNT_KEY;
 
     if (!LTA_ACCOUNT_KEY) {
