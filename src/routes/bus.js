@@ -1,4 +1,20 @@
 export default async function busRoutes(fastify) {
+  async function fetchWithLtaKey(url, accountKey) {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        AccountKey: accountKey,
+        accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`LTA API error: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
   fastify.get('/bus/arrivals/:busStopCode', async (request, reply) => {
     const { busStopCode } = request.params;
     const LTA_API_BASE = 'https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival';
@@ -11,19 +27,7 @@ export default async function busRoutes(fastify) {
 
     try {
       const url = `${LTA_API_BASE}?BusStopCode=${busStopCode}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          AccountKey: LTA_ACCOUNT_KEY,
-          accept: 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`LTA API error: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await fetchWithLtaKey(url, LTA_ACCOUNT_KEY);
       return { success: true, data };
     } catch (error) {
       reply.code(502);
