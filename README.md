@@ -34,7 +34,7 @@ cp .env.example .env
 
 Update `.env` with your database credentials. Default values for local dev:
 ```
-DATABASE_URL="postgresql://homeuser:homepass@localhost:5432/home_db"
+DATABASE_URL="postgresql://homeuser:homepass@localhost:5433/home_db"
 PORT=3000
 NODE_ENV=development
 ```
@@ -45,7 +45,7 @@ NODE_ENV=development
 docker compose up -d
 ```
 
-This starts a PostgreSQL container with the default credentials. The database will be available at `localhost:5432`.
+This starts a PostgreSQL container with the default credentials. The database will be available at `localhost:5433`.
 
 ### 4. Set Up Prisma
 
@@ -102,6 +102,8 @@ npm run prisma:studio
 ```
 
 ## Deployment to Raspberry Pi
+
+See `docs/production-deploy.md` for the GitHub Actions packaging and deployment flow.
 
 1. Install Node.js 18+ and Docker on your Raspberry Pi
 2. Clone this repo onto the Pi:

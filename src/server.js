@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 import taskRoutes from './routes/tasks.js';
 import healthRoutes from './routes/health.js';
 import busRoutes from './routes/bus.js';
+import groceryRoutes from './routes/groceries.js';
+import climateRoutes from './routes/climate.js';
 
 dotenv.config();
 
@@ -33,6 +35,8 @@ fastify.options('/*', async (request, reply) => {
 fastify.register(healthRoutes);
 fastify.register(taskRoutes);
 fastify.register(busRoutes);
+fastify.register(groceryRoutes);
+fastify.register(climateRoutes);
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';

@@ -9,4 +9,3 @@ dist/
 .idea/
 *.swp
 *.swo
-prisma/migrations/

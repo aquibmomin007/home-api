@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
+    "start": "concurrently \"node src/server.js\" \"prisma studio\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -17,6 +17,7 @@
     "fastify": "^4.25.2"
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
     "prisma": "^5.7.1"
   },
   "engines": {

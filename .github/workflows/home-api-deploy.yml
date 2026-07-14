@@ -1,0 +1,66 @@
+name: Home API Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Set to true to deploy to the Raspberry Pi
+        required: true
+        default: false
+        type: boolean
+      image_tag:
+        description: Docker image tag to deploy
+        required: true
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    if: ${{ inputs.deploy }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Copy deployment compose file to Raspberry Pi
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          port: ${{ secrets.PI_SSH_PORT || 22 }}
+          source: deploy/docker-compose.production.yml
+          target: /opt/home-api
+          strip_components: 1
+
+      - name: Deploy Docker image on Raspberry Pi
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          IMAGE_NAME: ${{ github.event.repository.name }}
+          IMAGE_OWNER: ${{ github.repository_owner }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          port: ${{ secrets.PI_SSH_PORT || 22 }}
+          envs: IMAGE_TAG,IMAGE_NAME,IMAGE_OWNER,GHCR_USERNAME,GHCR_TOKEN
+          script: |
+            set -eu
+            cd /opt/home-api
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            export HOME_API_IMAGE_TAG="$IMAGE_TAG"
+            export HOME_API_IMAGE_NAME="$IMAGE_NAME"
+            export GITHUB_REPOSITORY_OWNER="$IMAGE_OWNER"
+            docker compose -f docker-compose.production.yml pull api
+            docker compose -f docker-compose.production.yml run --rm api npx prisma migrate deploy
+            docker compose -f docker-compose.production.yml up -d api
+            curl --fail --silent http://127.0.0.1:3000/health > /dev/null
