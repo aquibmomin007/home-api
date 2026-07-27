@@ -6,6 +6,7 @@ import healthRoutes from './routes/health.js';
 import busRoutes from './routes/bus.js';
 import groceryRoutes from './routes/groceries.js';
 import climateRoutes from './routes/climate.js';
+import flightRoutes from './routes/flights.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ fastify.register(taskRoutes);
 fastify.register(busRoutes);
 fastify.register(groceryRoutes);
 fastify.register(climateRoutes);
+fastify.register(flightRoutes);
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';

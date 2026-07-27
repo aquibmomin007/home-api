@@ -51,3 +51,29 @@ model Grocery {
 
   @@map("groceries")
 }
+
+model FlightDealState {
+  id              String   @id @default(cuid())
+  itineraryKey    String   @unique
+  routeType       String
+  origin          String
+  destination     String
+  windowLabel     String
+  outboundDate    DateTime
+  returnDate      DateTime
+  lastSeenPrice   Int
+  currency        String   @default("SGD")
+  cabin           String
+  stops           Int
+  airline         String
+  baggageIncluded Boolean
+  lastSeenAt      DateTime @default(now())
+  lastAlertPrice  Int?
+  lastAlertAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([destination, routeType])
+  @@index([lastSeenAt])
+  @@map("flight_deal_states")
+}
