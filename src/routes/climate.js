@@ -108,12 +108,19 @@ const dayLabel = (dateStr) => {
 };
 
 async function fetchOpenMeteoSgForecast() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${SG_LAT}&longitude=${SG_LON}&timezone=Asia%2FSingapore&forecast_days=7&daily=weather_code,weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max&hourly=weather_code,weathercode,precipitation_probability,windspeed_10m`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Climate provider error: HTTP ${response.status}`);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Climate provider error: HTTP ${response.status}`);
+    }
+    return response.json();
+  } finally {
+    clearTimeout(timeout);
   }
-  return response.json();
 }
 
 export default async function climateRoutes(fastify) {
@@ -159,6 +166,14 @@ export default async function climateRoutes(fastify) {
         data: days,
       };
     } catch (error) {
+      if (error?.name === 'AbortError') {
+        reply.code(504);
+        return {
+          success: false,
+          error: 'Climate provider request timed out',
+        };
+      }
+
       reply.code(502);
       return {
         success: false,

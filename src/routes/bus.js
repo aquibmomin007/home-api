@@ -1,6 +1,22 @@
 export default async function busRoutes(fastify) {
+  const FETCH_TIMEOUT_MS = 10000;
+
+  async function fetchWithTimeout(url, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    try {
+      return await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   async function fetchWithLtaKey(url, accountKey) {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'GET',
       headers: {
         AccountKey: accountKey,
@@ -34,6 +50,15 @@ export default async function busRoutes(fastify) {
       const data = await fetchWithLtaKey(url, LTA_ACCOUNT_KEY);
       return { success: true, data };
     } catch (error) {
+      if (error?.name === 'AbortError') {
+        reply.code(504);
+        return {
+          success: false,
+          error: 'LTA API request timed out',
+          upstreamStatus: 504,
+        };
+      }
+
       if (error?.statusCode === 401 || error?.statusCode === 403) {
         reply.code(401);
         return {
