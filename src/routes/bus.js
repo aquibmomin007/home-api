@@ -9,7 +9,11 @@ export default async function busRoutes(fastify) {
     });
 
     if (!response.ok) {
-      throw new Error(`LTA API error: ${response.status}`);
+      const body = await response.text().catch(() => '');
+      const err = new Error(`LTA API error: ${response.status}`);
+      err.statusCode = response.status;
+      err.responseBody = body;
+      throw err;
     }
 
     return response.json();
@@ -30,10 +34,20 @@ export default async function busRoutes(fastify) {
       const data = await fetchWithLtaKey(url, LTA_ACCOUNT_KEY);
       return { success: true, data };
     } catch (error) {
+      if (error?.statusCode === 401 || error?.statusCode === 403) {
+        reply.code(401);
+        return {
+          success: false,
+          error: 'Invalid or unauthorized LTA_ACCOUNT_KEY',
+          upstreamStatus: error.statusCode,
+        };
+      }
+
       reply.code(502);
       return {
         success: false,
         error: error.message || 'Failed to fetch bus arrivals',
+        upstreamStatus: error?.statusCode || 502,
       };
     }
   });

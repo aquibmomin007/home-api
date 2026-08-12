@@ -1,12 +1,14 @@
 import Fastify from 'fastify';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import taskRoutes from './routes/tasks.js';
 import healthRoutes from './routes/health.js';
 import busRoutes from './routes/bus.js';
 import groceryRoutes from './routes/groceries.js';
 import climateRoutes from './routes/climate.js';
 import flightRoutes from './routes/flights.js';
+import { isApiAppEnabled } from './appSwitches.js';
 
 dotenv.config();
 
@@ -14,7 +16,13 @@ const fastify = Fastify({
   logger: true,
 });
 
-export const prisma = new PrismaClient();
+const prismaAdapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export const prisma = new PrismaClient({
+  adapter: prismaAdapter,
+});
 
 // Add CORS headers manually
 fastify.addHook('onSend', async (request, reply) => {
@@ -34,11 +42,25 @@ fastify.options('/*', async (request, reply) => {
 
 // Register routes
 fastify.register(healthRoutes);
-fastify.register(taskRoutes);
-fastify.register(busRoutes);
-fastify.register(groceryRoutes);
-fastify.register(climateRoutes);
-fastify.register(flightRoutes);
+if (isApiAppEnabled('checklist')) {
+  fastify.register(taskRoutes);
+}
+
+if (isApiAppEnabled('bus')) {
+  fastify.register(busRoutes);
+}
+
+if (isApiAppEnabled('grocery')) {
+  fastify.register(groceryRoutes);
+}
+
+if (isApiAppEnabled('climate')) {
+  fastify.register(climateRoutes);
+}
+
+if (isApiAppEnabled('flights')) {
+  fastify.register(flightRoutes);
+}
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
