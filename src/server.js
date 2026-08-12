@@ -12,6 +12,8 @@ import { isApiAppEnabled } from './appSwitches.js';
 
 dotenv.config();
 
+console.log('[home-api] server booting up — deploy test v1');
+
 const fastify = Fastify({
   logger: true,
 });
